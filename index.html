@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Propuesta de Formaci&oacute;n IA - ServiceNow</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&display=swap');
+
+:root {
+  --accent: #fd7b2b;
+  --accent-light: #ff9a57;
+  --accent-dark: #e06a1f;
+  --accent-glow: rgba(253, 123, 43, 0.15);
+  --bg-primary: #0a0a0f;
+  --bg-secondary: #0f0f16;
+  --bg-card: #14141c;
+  --bg-card-hover: #1a1a24;
+  --bg-problem: #0d0d14;
+  --text-primary: #FFFFFF;
+  --text-secondary: #A0A0A0;
+  --text-muted: #666666;
+  --border: #1e1e2a;
+  --green: #4ADE80;
+  --red: #F87171;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* PASSWORD GATE */
+#gate {
+  position: fixed; inset: 0;
+  background: var(--bg-primary);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 9999;
+  transition: opacity 0.6s ease, visibility 0.6s ease;
+}
+#gate.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+
+.gate-box {
+  text-align: center;
+  max-width: 420px;
+  padding: 2rem;
+}
+.gate-logo {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 2.5rem;
+}
+.gate-box h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: 2rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+}
+.gate-box p {
+  color: var(--text-secondary);
+  margin-bottom: 2rem;
+  font-size: 0.95rem;
+}
+.gate-input-wrap {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.gate-input-wrap input {
+  flex: 1; min-width: 200px;
+  padding: 0.85rem 1.2rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 1rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.3s;
+}
+.gate-input-wrap input:focus { border-color: var(--accent); }
+.gate-input-wrap button {
+  padding: 0.85rem 1.8rem;
+  background: var(--accent);
+  color: #000;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+.gate-input-wrap button:hover { background: var(--accent-light); }
+.gate-error {
+  color: var(--red);
+  font-size: 0.85rem;
+  margin-top: 1rem;
+  display: none;
+}
+
+/* MAIN CONTENT */
+#content { display: none; }
+#content.visible { display: block; }
+
+/* HERO */
+.hero {
+  min-height: 85vh;
+  display: flex; align-items: center; justify-content: center;
+  text-align: center;
+  padding: 4rem 2rem;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 50% 30%, rgba(253,123,43,0.07) 0%, transparent 70%);
+}
+.hero-inner { position: relative; max-width: 800px; }
+.hero-logo {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 2.5rem;
+}
+.hero-badge {
+  display: inline-block;
+  padding: 0.4rem 1.2rem;
+  border: 1px solid var(--accent);
+  border-radius: 100px;
+  color: var(--accent);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 2rem;
+}
+.hero h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(2.5rem, 5vw, 3.8rem);
+  font-weight: 700;
+  line-height: 1.15;
+  margin-bottom: 1.5rem;
+}
+.hero h1 .accent { color: var(--accent); }
+.hero .subtitle {
+  font-size: 1.15rem;
+  color: var(--text-secondary);
+  max-width: 600px;
+  margin: 0 auto 2rem;
+  line-height: 1.8;
+}
+.hero-meta {
+  display: flex; gap: 2.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 2.5rem;
+}
+.hero-meta-item { text-align: center; }
+.hero-meta-item .label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.3rem;
+}
+.hero-meta-item .value {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+/* SECTIONS */
+.section {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 5rem 2rem;
+}
+.section-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  margin-bottom: 1rem;
+}
+.section h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(1.8rem, 3.5vw, 2.5rem);
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  line-height: 1.3;
+}
+.section p {
+  color: var(--text-secondary);
+  font-size: 1.05rem;
+  margin-bottom: 1.25rem;
+}
+
+.divider {
+  max-width: 900px;
+  margin: 0 auto;
+  border: none;
+  border-top: 1px solid var(--border);
+}
+
+/* PROBLEM SECTION */
+.section-problem {
+  background: linear-gradient(180deg, var(--bg-problem) 0%, var(--bg-primary) 100%);
+  position: relative;
+}
+.section-problem::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(253,123,43,0.3), transparent);
+}
+.problem-points {
+  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.problem-point {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  background: rgba(253,123,43,0.04);
+  border: 1px solid rgba(253,123,43,0.1);
+  border-radius: 12px;
+}
+.problem-point .icon {
+  flex-shrink: 0;
+  font-size: 1.3rem;
+  margin-top: 2px;
+}
+.problem-point p {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.7;
+}
+
+/* APPROACH CARDS */
+.approach-list {
+  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.approach-item {
+  padding: 1.5rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  transition: border-color 0.3s;
+}
+.approach-item:hover { border-color: var(--accent-dark); }
+.approach-item p {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.7;
+}
+.approach-item .highlight {
+  color: var(--accent);
+  font-weight: 600;
+}
+.quote-block {
+  padding: 2rem;
+  background: linear-gradient(135deg, rgba(253,123,43,0.08) 0%, rgba(253,123,43,0.02) 100%);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 12px 12px 0;
+  margin-top: 2rem;
+}
+.quote-block p {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.2rem;
+  font-style: italic;
+  color: var(--text-primary);
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* PRICING CARDS */
+.pricing-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  margin-top: 2.5rem;
+}
+
+.pricing-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 2.5rem 2rem;
+  position: relative;
+  transition: border-color 0.3s;
+}
+.pricing-card:hover { border-color: rgba(253,123,43,0.3); }
+
+.pricing-card.recommended {
+  border: 2px solid var(--accent);
+  background: linear-gradient(180deg, rgba(253,123,43,0.08) 0%, var(--bg-card) 40%);
+  box-shadow: 0 0 40px rgba(253,123,43,0.08);
+}
+
+.badge-recommended {
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.4rem 1.5rem;
+  background: var(--accent);
+  color: #000;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border-radius: 100px;
+  white-space: nowrap;
+}
+
+.pricing-card .card-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.5rem;
+}
+.pricing-card h3 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+.pricing-card .card-desc {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+}
+.pricing-card .price {
+  font-size: 2.8rem;
+  font-weight: 800;
+  color: var(--accent);
+  margin-bottom: 0.25rem;
+}
+.pricing-card .price-note {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 1.5rem;
+}
+.pricing-card .price-savings {
+  display: inline-block;
+  padding: 0.3rem 0.8rem;
+  background: rgba(74,222,128,0.1);
+  color: var(--green);
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 6px;
+  margin-bottom: 1.5rem;
+}
+
+.pricing-content-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-top: 1rem;
+}
+
+.pricing-details h4 {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.75rem;
+}
+.pricing-details ul {
+  list-style: none;
+}
+.pricing-details ul li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0.45rem 0;
+  font-size: 0.92rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+.pricing-details ul li .check {
+  color: var(--green);
+  font-weight: 700;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.pricing-details ul li .dot {
+  color: var(--accent);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.pricing-note-box {
+  margin-top: 1.5rem;
+  padding: 1rem 1.25rem;
+  background: rgba(255,255,255,0.03);
+  border-radius: 8px;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+.pricing-note-box .icon { margin-right: 0.4rem; }
+
+.format-options {
+  margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.format-option {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.format-option.highlight {
+  border-color: rgba(253,123,43,0.3);
+  background: rgba(253,123,43,0.04);
+}
+.format-option .format-label {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+.format-option .format-price {
+  margin-left: auto;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--accent);
+  white-space: nowrap;
+}
+.format-option .format-tag {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--green);
+  background: rgba(74,222,128,0.1);
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+/* COMPLETE PACKAGE BREAKDOWN */
+.package-breakdown {
+  margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.package-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background: rgba(255,255,255,0.02);
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+.package-line .pkg-name { color: var(--text-secondary); }
+.package-line .pkg-price { color: var(--text-muted); font-weight: 500; }
+.package-line.total {
+  background: rgba(253,123,43,0.08);
+  border: 1px solid rgba(253,123,43,0.2);
+  margin-top: 0.5rem;
+}
+.package-line.total .pkg-name { color: var(--text-primary); font-weight: 600; }
+.package-line.total .pkg-price { color: var(--accent); font-weight: 700; font-size: 1.1rem; }
+
+.recommendation-box {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, rgba(253,123,43,0.08) 0%, rgba(253,123,43,0.02) 100%);
+  border: 1px solid rgba(253,123,43,0.2);
+  border-radius: 12px;
+}
+.recommendation-box p {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.7;
+  font-style: italic;
+}
+
+/* WHY US */
+.credentials-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.25rem;
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+}
+.credential-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: center;
+  transition: border-color 0.3s;
+}
+.credential-card:hover { border-color: var(--accent-dark); }
+.credential-card .number {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--accent);
+  margin-bottom: 0.3rem;
+}
+.credential-card .desc {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* LOGISTICS */
+.logistics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+  margin-top: 2rem;
+}
+.logistics-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1.25rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.logistics-item .icon {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.logistics-item .info h4 {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+.logistics-item .info p {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+/* FOOTER */
+footer {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 4rem 2rem;
+  text-align: center;
+  border-top: 1px solid var(--border);
+}
+footer .brand {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 0.75rem;
+}
+footer p {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  margin-bottom: 0.4rem;
+}
+footer .footer-line {
+  margin-top: 2rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  opacity: 0.5;
+}
+
+/* ANIMATIONS */
+.fade-in {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.fade-in.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .pricing-content-grid { grid-template-columns: 1fr; }
+  .credentials-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 600px) {
+  .hero { min-height: 70vh; padding: 3rem 1.5rem; }
+  .section { padding: 3.5rem 1.5rem; }
+  .pricing-card { padding: 2rem 1.5rem; }
+  .hero-meta { gap: 1.5rem; }
+  .pricing-content-grid { grid-template-columns: 1fr; }
+  .credentials-grid { grid-template-columns: 1fr; }
+  .logistics-grid { grid-template-columns: 1fr; }
+  .pricing-card .price { font-size: 2.2rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- PASSWORD GATE -->
+<div id="gate">
+  <div class="gate-box">
+    <div class="gate-logo">Imperio Digital</div>
+    <h1>ServiceNow</h1>
+    <p>Propuesta confidencial.<br>Ingresa la clave de acceso para continuar.</p>
+    <div class="gate-input-wrap">
+      <input type="password" id="gate-password" placeholder="Clave de acceso" autocomplete="off">
+      <button onclick="checkPassword()">Acceder</button>
+    </div>
+    <p class="gate-error" id="gate-error">Clave incorrecta. Intenta de nuevo.</p>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div id="content">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-inner fade-in">
+      <div class="hero-logo">Imperio Digital</div>
+      <span class="hero-badge">Propuesta de Formaci&oacute;n</span>
+      <h1>Formaci&oacute;n en <span class="accent">Inteligencia Artificial</span></h1>
+      <p class="subtitle">
+        Sesiones pr&aacute;cticas dise&ntilde;adas para que tu equipo use IA desde el d&iacute;a uno. Sin teor&iacute;a excesiva. Sin carga cognitiva innecesaria. Solo resultados.
+      </p>
+      <div class="hero-meta">
+        <div class="hero-meta-item">
+          <div class="label">Preparado para</div>
+          <div class="value">ServiceNow</div>
+        </div>
+        <div class="hero-meta-item">
+          <div class="label">Fecha</div>
+          <div class="value">Marzo 2026</div>
+        </div>
+        <div class="hero-meta-item">
+          <div class="label">Ref</div>
+          <div class="value">ID-2026-SN-001</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- EL PROBLEMA -->
+  <section class="section section-problem fade-in">
+    <span class="section-label">01 / El problema</span>
+    <h2>La IA no falla por falta de herramientas. Falla por exceso de informaci&oacute;n.</h2>
+
+    <div class="problem-points">
+      <div class="problem-point">
+        <div class="icon">&#9888;&#65039;</div>
+        <p>Cognitive overload es real. Cada semana hay una herramienta nueva, un update, un training m&aacute;s. El equipo ya tiene demasiado que absorber.</p>
+      </div>
+      <div class="problem-point">
+        <div class="icon">&#128200;</div>
+        <p>El resultado: equipos que saben que la IA existe pero no la usan en su d&iacute;a a d&iacute;a. Los deliverables salen, pero la productividad personal con IA es pr&aacute;cticamente cero.</p>
+      </div>
+      <div class="problem-point">
+        <div class="icon">&#127891;</div>
+        <p>La formaci&oacute;n acad&eacute;mica tradicional habla desde la teor&iacute;a. Nosotros hablamos desde la pr&aacute;ctica. La diferencia se nota desde la primera hora.</p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- EL ENFOQUE -->
+  <section class="section fade-in">
+    <span class="section-label">02 / El enfoque</span>
+    <h2>Menos teor&iacute;a, m&aacute;s ejecuci&oacute;n</h2>
+
+    <div class="quote-block">
+      <p>"La mejor estrategia es la que se ejecuta. El mejor conocimiento es el que se pone en pr&aacute;ctica."</p>
+    </div>
+
+    <div class="approach-list">
+      <div class="approach-item">
+        <p><span class="highlight">No vas a necesitar ser t&eacute;cnico.</span> Vas a salir usando IA, no hablando de ella. Cada sesi&oacute;n est&aacute; dise&ntilde;ada para que cualquier persona del equipo pueda aplicar lo aprendido al d&iacute;a siguiente.</p>
+      </div>
+      <div class="approach-item">
+        <p><span class="highlight">Carga cognitiva m&iacute;nima.</span> Sesiones simples, pr&aacute;cticas y replicables. Dise&ntilde;adas espec&iacute;ficamente para equipos que ya tienen bastante en su plato.</p>
+      </div>
+      <div class="approach-item">
+        <p><span class="highlight">Facilitador con experiencia real en implementaci&oacute;n, no acad&eacute;mico.</span> M&aacute;s de 55,000 seguidores en YouTube ense&ntilde;ando IA aplicada. Speaker en Make Waves Munich 2025, Summit Pa&iacute;s Digital, EMMSDT Doppler.</p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- PAQUETE BASE -->
+  <section class="section fade-in">
+    <span class="section-label">03 / Paquetes</span>
+    <h2>Opciones de formaci&oacute;n</h2>
+    <p>Tres opciones dise&ntilde;adas para cubrir distintos niveles de profundidad y alcance dentro de tu organizaci&oacute;n.</p>
+
+    <div class="pricing-grid">
+
+      <!-- PAQUETE BASE -->
+      <div class="pricing-card">
+        <div class="card-label">Paquete Base</div>
+        <h3>Sesi&oacute;n de Productividad con IA</h3>
+        <div class="card-desc">Para todo el equipo de Revenue Operations (~90 personas). Foco 100% en Claude (chatbot + artefactos), las herramientas que ya tienen.</div>
+        <div class="price">$3,500 <span style="font-size:1rem;font-weight:400;color:var(--text-muted);">USD</span></div>
+        <div class="price-note">1 sesi&oacute;n de 2 horas</div>
+
+        <div class="pricing-content-grid">
+          <div class="pricing-details">
+            <h4>Contenido</h4>
+            <ul>
+              <li><span class="dot">&#9679;</span> Auditor&iacute;a en vivo de flujos actuales del equipo</li>
+              <li><span class="dot">&#9679;</span> Quick wins: de tareas de 30 min a 3 min con prompts aplicados</li>
+              <li><span class="dot">&#9679;</span> Ejercicios pr&aacute;cticos con casos reales de ServiceNow (forecast, an&aacute;lisis, reportes)</li>
+              <li><span class="dot">&#9679;</span> Cada persona sale con 2-3 flujos optimizados que puede usar al d&iacute;a siguiente</li>
+            </ul>
+          </div>
+          <div class="pricing-details">
+            <h4>Detalles</h4>
+            <ul>
+              <li><span class="check">&#10003;</span> 1 sesi&oacute;n de 2 horas</li>
+              <li><span class="check">&#10003;</span> Equipo completo de Revenue Ops</li>
+              <li><span class="check">&#10003;</span> Herramientas: Claude chatbot + artefactos</li>
+              <li><span class="check">&#10003;</span> Material digital post-sesi&oacute;n</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="format-options">
+          <div class="format-option">
+            <div class="format-label">1 grupo (90 personas)</div>
+            <div class="format-price">$3,500 USD</div>
+          </div>
+          <div class="format-option highlight">
+            <div class="format-label">2 grupos de 45 personas</div>
+            <div class="format-tag">Recomendado</div>
+            <div class="format-price">$6,000 USD</div>
+          </div>
+        </div>
+
+        <div class="pricing-note-box">
+          <span class="icon">&#128161;</span> Formato recomendado: 2 grupos de 45 personas para mejor retenci&oacute;n y m&aacute;s interacci&oacute;n. Precio especial de $6,000 USD (vs $7,000 por separado).
+        </div>
+      </div>
+
+      <!-- PAQUETE AVANZADO -->
+      <div class="pricing-card">
+        <div class="card-label">Paquete Avanzado</div>
+        <h3>Sesi&oacute;n de IA para L&iacute;deres</h3>
+        <div class="card-desc">Para el equipo de aceleraci&oacute;n de IA + l&iacute;deres de &aacute;rea (~15-20 personas). Foco en herramientas avanzadas: Claude Code + Claude Cowork.</div>
+        <div class="price">$4,500 <span style="font-size:1rem;font-weight:400;color:var(--text-muted);">USD</span></div>
+        <div class="price-note">1 sesi&oacute;n de 2 horas</div>
+
+        <div class="pricing-content-grid">
+          <div class="pricing-details">
+            <h4>Contenido</h4>
+            <ul>
+              <li><span class="dot">&#9679;</span> Automatizaci&oacute;n de procesos internos con Claude Code</li>
+              <li><span class="dot">&#9679;</span> C&oacute;mo usar Cowork para colaboraci&oacute;n en equipo con IA</li>
+              <li><span class="dot">&#9679;</span> Dise&ntilde;o de flujos de adopci&oacute;n: c&oacute;mo bajar el conocimiento a sus equipos</li>
+              <li><span class="dot">&#9679;</span> Proyectos reales: forecast autom&aacute;tico, an&aacute;lisis de pipeline, se&ntilde;ales de demanda</li>
+            </ul>
+          </div>
+          <div class="pricing-details">
+            <h4>Detalles</h4>
+            <ul>
+              <li><span class="check">&#10003;</span> 1 sesi&oacute;n de 2 horas</li>
+              <li><span class="check">&#10003;</span> 15-20 participantes (l&iacute;deres)</li>
+              <li><span class="check">&#10003;</span> Herramientas: Claude Code + Cowork</li>
+              <li><span class="check">&#10003;</span> Material digital post-sesi&oacute;n</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="pricing-note-box">
+          <span class="icon">&#128197;</span> Disponible a partir de abril, cuando se active la integraci&oacute;n con Microsoft 365 + Copilot.
+        </div>
+      </div>
+
+      <!-- PAQUETE COMPLETO -->
+      <div class="pricing-card recommended">
+        <div class="badge-recommended">&#11088; Recomendado</div>
+        <div class="card-label">Paquete Completo</div>
+        <h3>Formaci&oacute;n Integral para Revenue Operations</h3>
+        <div class="card-desc">Sesi&oacute;n general (2 grupos de 45) + Sesi&oacute;n avanzada para l&iacute;deres. 3 sesiones totales para m&aacute;ximo impacto.</div>
+        <div class="price">$9,500 <span style="font-size:1rem;font-weight:400;color:var(--text-muted);">USD</span></div>
+        <div class="price-note">3 sesiones de 2 horas cada una</div>
+        <div class="price-savings">Ahorro de $1,000 vs. precio por separado</div>
+
+        <div class="package-breakdown">
+          <div class="package-line">
+            <span class="pkg-name">Sesi&oacute;n General - Grupo 1 (45 personas)</span>
+            <span class="pkg-price">$3,500</span>
+          </div>
+          <div class="package-line">
+            <span class="pkg-name">Sesi&oacute;n General - Grupo 2 (45 personas)</span>
+            <span class="pkg-price">$3,500</span>
+          </div>
+          <div class="package-line">
+            <span class="pkg-name">Sesi&oacute;n Avanzada - L&iacute;deres (15-20)</span>
+            <span class="pkg-price">$4,500</span>
+          </div>
+          <div class="package-line total">
+            <span class="pkg-name">Total sin descuento</span>
+            <span class="pkg-price" style="text-decoration: line-through; color: var(--text-muted);">$10,500</span>
+          </div>
+          <div class="package-line total" style="background: rgba(253,123,43,0.12);">
+            <span class="pkg-name">Precio Paquete Completo</span>
+            <span class="pkg-price">$9,500 USD</span>
+          </div>
+        </div>
+
+        <div class="recommendation-box">
+          <p>"Para m&aacute;ximo impacto, recomendamos el paquete completo. La sesi&oacute;n general nivela la cancha y la sesi&oacute;n avanzada equipa a los l&iacute;deres para sostener el cambio."</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- POR QUÉ NOSOTROS -->
+  <section class="section fade-in">
+    <span class="section-label">04 / Por qu&eacute; nosotros</span>
+    <h2>No somos acad&eacute;micos. Somos practitioners.</h2>
+
+    <div class="credentials-grid">
+      <div class="credential-card">
+        <div class="number">55K+</div>
+        <div class="desc">suscriptores aprendiendo IA aplicada en YouTube</div>
+      </div>
+      <div class="credential-card">
+        <div class="number">580+</div>
+        <div class="desc">profesionales implementando IA en sus negocios</div>
+      </div>
+      <div class="credential-card">
+        <div class="number">3</div>
+        <div class="desc">conferencias internacionales como speaker</div>
+      </div>
+      <div class="credential-card">
+        <div class="number">100%</div>
+        <div class="desc">foco en implementaci&oacute;n pr&aacute;ctica, no teor&iacute;a</div>
+      </div>
+    </div>
+
+    <div class="approach-item" style="margin-bottom: 1rem;">
+      <p><span class="highlight">Speaker internacional:</span> Make Waves Munich, Summit Pa&iacute;s Digital, EMMSDT Doppler.</p>
+    </div>
+    <div class="approach-item">
+      <p><span class="highlight">Comunidad activa</span> de m&aacute;s de 580 profesionales implementando IA en sus negocios en Latinoam&eacute;rica y Espa&ntilde;a.</p>
+    </div>
+
+    <div class="quote-block">
+      <p>"No soy el que m&aacute;s sabe de IA. Soy el que mejor lo sabe explicar. Y eso es exactamente lo que tu equipo necesita."</p>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- LOGÍSTICA -->
+  <section class="section fade-in">
+    <span class="section-label">05 / Log&iacute;stica</span>
+    <h2>Detalles operativos</h2>
+
+    <div class="logistics-grid">
+      <div class="logistics-item">
+        <div class="icon">&#127760;</div>
+        <div class="info">
+          <h4>Modalidad</h4>
+          <p>Presencial o virtual (a definir)</p>
+        </div>
+      </div>
+      <div class="logistics-item">
+        <div class="icon">&#9201;</div>
+        <div class="info">
+          <h4>Duraci&oacute;n</h4>
+          <p>2 horas por sesi&oacute;n</p>
+        </div>
+      </div>
+      <div class="logistics-item">
+        <div class="icon">&#128230;</div>
+        <div class="info">
+          <h4>Incluye</h4>
+          <p>Material digital post-sesi&oacute;n, grabaci&oacute;n, acceso a recursos</p>
+        </div>
+      </div>
+      <div class="logistics-item">
+        <div class="icon">&#128197;</div>
+        <div class="info">
+          <h4>Inicio</h4>
+          <p>Marzo - Abril 2026 (a coordinar)</p>
+        </div>
+      </div>
+      <div class="logistics-item">
+        <div class="icon">&#9989;</div>
+        <div class="info">
+          <h4>Validez</h4>
+          <p>15 d&iacute;as a partir de la fecha de emisi&oacute;n</p>
+        </div>
+      </div>
+      <div class="logistics-item">
+        <div class="icon">&#127970;</div>
+        <div class="info">
+          <h4>Empresa</h4>
+          <p>Imperio Digital LLC</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- FOOTER -->
+  <footer class="fade-in">
+    <div class="brand">Imperio Digital</div>
+    <p style="color: var(--text-secondary); margin-bottom: 0.5rem;">Benjam&iacute;n Cordero</p>
+    <p>benja@imperiodigital.ai</p>
+    <div class="footer-line">&copy; 2026 Imperio Digital. Documento confidencial preparado para ServiceNow.</div>
+  </footer>
+
+</div>
+
+<script>
+function checkPassword() {
+  var input = document.getElementById('gate-password');
+  var error = document.getElementById('gate-error');
+  if (input.value === 'servicenow2026') {
+    document.getElementById('gate').classList.add('hidden');
+    document.getElementById('content').classList.add('visible');
+    initAnimations();
+  } else {
+    error.style.display = 'block';
+    input.value = '';
+    input.focus();
+  }
+}
+
+document.getElementById('gate-password').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') checkPassword();
+});
+
+function initAnimations() {
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.15 });
+
+  document.querySelectorAll('.fade-in').forEach(function(el) {
+    observer.observe(el);
+  });
+}
+</script>
+
+</body>
+</html>
